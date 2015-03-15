@@ -12,7 +12,8 @@ const Signals = imports.signals;
 
 
 const VOLUME_NOTIFY_ID = 1;
-const PA_MAX = 65536;
+const PA_FULL = 65536;
+const PA_MAX = PA_FULL * 1.5;
 
 const PortMenu = new Lang.Class({
 	Name: 'PortMenu',
@@ -37,6 +38,7 @@ const PortMenu = new Lang.Class({
 		this._icon = new St.Icon({style_class: 'sink-icon'});
 		let muteBtn = new St.Button({child: this._icon});
 		this._slider = new Slider.Slider(0);
+		this._label = new St.Label();
 
 		//Populate all the devices
 		this._paDBus.call(null, '/org/pulseaudio/core1', 'org.freedesktop.DBus.Properties', 'Get',
@@ -64,6 +66,7 @@ const PortMenu = new Lang.Class({
 		this.actor.add(muteBtn);
 		this.actor.add(this._slider.actor, {expand:true});
 		this.actor.add(this._expandBtn);
+		this.actor.add(this._label);
 
 		this.actor.add_style_class_name('stream');
 
@@ -381,6 +384,8 @@ const Device = new Lang.Class({
 
 			this._base.emit('icon-changed', this._base._slider.value);
 		}
+		let volPercent = this._base._slider.value * PA_MAX / PA_FULL * 100;
+		this._base._label.set_text(volPercent.toFixed().toString() + ' %');
 	},
 
 
@@ -420,6 +425,8 @@ const Device = new Lang.Class({
 			}
 		}
 		this._base.emit('icon-changed', this._base._slider.value);
+		let volPercent = this._base._slider.value * PA_MAX / PA_FULL * 100;
+		this._base._label.set_text(volPercent.toFixed().toString() + ' %');
 	},
 
 	_onPortChanged: function(conn, sender, object, iface, signal, param, user_data){
